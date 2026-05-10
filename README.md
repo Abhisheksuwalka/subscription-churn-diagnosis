@@ -1,119 +1,190 @@
 # 🩺 Subscription Churn Diagnosis & Customer Health Score
 
-> **Analyzed 7,043 subscription accounts to diagnose churn patterns, segment customers into 4 behavioral archetypes, and build a Customer Health Score that identifies high-risk customers at 7.2× the churn rate of low-risk ones.**
+<div align="center">
+
+![Python](https://img.shields.io/badge/Python-3.9-3776AB?style=flat-square&logo=python&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-15_queries-003B57?style=flat-square&logo=sqlite&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-K--Means_k%3D4-F7931E?style=flat-square&logo=scikit-learn&logoColor=white)
+![Power BI](https://img.shields.io/badge/Power_BI-Dashboard-F2C811?style=flat-square&logo=powerbi&logoColor=black)
+
+**7,043 customers · 26.5% churn rate · $1.67M annual revenue loss diagnosed**
+
+</div>
 
 ---
 
-## 📌 Executive Summary
+## 📌 The Problem
 
-A subscription company with a **26.5% churn rate** was losing **$1.67M in annualized revenue**. The root cause wasn't random — it was concentrated in specific segments that standard reporting couldn't see.
+A subscription company was losing **1 in 4 customers** — but treating all at-risk customers the same. The result: CS teams wasted resources on unsaveable accounts while the highest-value retention opportunities went unaddressed.
 
-Using SQL analysis, K-Means clustering, and a weighted Customer Health Score, I pinpointed **where** churn happens, **why** it happens, and **what to do** about it — with dollar-level intervention projections.
-
-**Top Finding:** 51.4% of Month-to-Month customers in their first year churn, accounting for $819,617 in annual revenue loss. This single segment is the highest-leverage intervention target.
+**This project answers three questions with data:**
+1. *Where* is churn concentrated? (SQL analysis — 15 queries)
+2. *Which customers* share the same risk profile? (K-Means clustering)
+3. *What should we do first?* (Weighted Health Score + ROI projections)
 
 ---
 
-## 🏗️ Methodology
+## 📊 The Big Picture
 
-| Step | Tool | Purpose | Output |
-|:-----|:-----|:--------|:-------|
-| 1. Data Cleaning | Python (Pandas) | Fix types, engineer features, remove nulls | `data/cleaned/telco_churn_final.csv` |
-| 2. SQL Analysis | SQLite (15 queries) | Diagnose churn by contract, tenure, services, demographics | `sql/churn_analysis_queries.sql` |
-| 3. Clustering | Python (Scikit-learn K-Means, k=4) | Segment into behavioral archetypes | `models/churn_kmeans_k4.pkl` |
-| 4. Health Score | Python (weighted composite) | Score every customer's churn risk 0–100 | Column: `health_score` in final CSV |
-| 5. Dashboard | Power BI | Interactive 4-page executive drill-down | `powerbi/P1_Churn_Dashboard.pbix` |
-| 6. Executive Brief | Google Docs → PDF | 1-page VP-ready summary with ROI projections | `docs/Executive_Brief.pdf` |
+![Overall Churn Rate and Revenue Impact](docs/q1_overall_churn.png)
+
+> 26.5% of customers (1,869) account for **$139K in monthly revenue lost** — $1.67M annualized.
 
 ---
 
 ## 🔍 Key Findings
 
-### 1. The Leaky Bucket — Early-Tenure Month-to-Month Customers
-- **51.4% churn rate** for Month-to-Month customers in 0–12 months (worst in the base)
-- 1,994 customers in this cohort; 1,024 already churned
-- Annual revenue lost from this segment alone: **$819,617**
-- Fix: Convert to annual contract with a targeted incentive offer
+### Finding 1 — Contract Type is the #1 Churn Predictor
 
-### 2. The Hidden Lever — TechSupport for Senior Citizens
-- Senior citizens churn at **50.6%** without TechSupport vs. **19.6%** with it — a **31 percentage point** difference
-- 830 of 1,142 senior customers currently have no TechSupport
-- A 60-day free TechSupport trial for this group could protect **~$246,452/year**
+![Churn Rate by Contract Type](docs/q2_contract_churn.png)
 
-### 3. Frustrated Loyalists — Customers Who Stayed, Then Left
-- Cluster of 2,849 customers averaging **13.4 months tenure**, paying **$59.39/month**
-- Churning at **39.6%** — these are not impulsive cancellations; they formed an opinion
-- 100% of this cluster falls in Red/Yellow risk tier
-- Annual revenue at risk: **$803,223**
+Month-to-month customers churn at **42.7%** — 15× the rate of two-year customers (2.8%). This single factor drives **$1.45M of the $1.67M total annual loss**.
 
 ---
 
-## 👥 Customer Segments Identified (K-Means, k=4)
+### Finding 2 — The First 12 Months are Critical
 
-| Segment | Size | Churn Rate | Avg Tenure | Avg Monthly | Annual Rev Lost | Primary Action |
-|:--------|:----:|:----------:|:----------:|:-----------:|:---------------:|:--------------|
-| Frustrated Loyalists | 2,849 | 39.6% | 13.4 mo | $59.39 | $803,223 | Win-back + contract conversion |
-| New & At-Risk Customers | 965 | 48.1% | 27.5 mo | $78.91 | $439,378 | Onboarding + TechSupport trial |
-| Moderate-Risk Segment | 2,120 | 11.7% | 54.4 mo | $86.62 | $256,738 | Loyalty rewards + upsell |
-| High-Value Loyal Customers | 1,109 | 2.8% | 43.2 mo | $24.46 | $9,099 | Standard mgmt + upsell |
+![Churn Rate by Customer Lifecycle Stage](docs/q5_tenure_band_churn.png)
 
-**Clustering quality:** Silhouette score = 0.30 (stable across 5 random seeds, std dev = 0.00)
+Churn drops from **47.4% in year one** to **6.6% after 5 years**. If a customer reaches month 24, they are largely retained. The intervention window is narrow.
+
+---
+
+### Finding 3 — More Services = Stickier Customers (But with a Danger Zone)
+
+![Feature Adoption Depth vs Churn Rate](docs/q7_service_adoption_churn.png)
+
+A U-shaped relationship: customers with **2–3 services are in the danger zone** (paying more, but not yet committed). Customers with **7+ services churn at only 5.3%** — they're fully embedded in the ecosystem.
+
+---
+
+### Finding 4 — Revenue Risk by Lifecycle Stage × Contract Type
+
+![Revenue Risk Matrix](docs/q15_risk_matrix_heatmap.png)
+
+The top-left cell is the crisis: **Month-to-month customers in year one churn at 51.4%**. Every other contract type across every tenure band is significantly safer. This matrix tells CS exactly where to focus.
+
+---
+
+## 👥 Customer Segments (K-Means Clustering, k=4)
+
+![Churn Rate by Customer Segment](docs/churn_by_cluster.png)
+
+Four behaviorally distinct archetypes emerged from K-Means clustering (silhouette score = 0.30, stable across 5 random seeds):
+
+![Cluster Profiles — Key Metrics](docs/cluster_profiles.png)
+
+| Segment | Size | Churn Rate | Avg Tenure | Avg Monthly | Annual Rev Lost | Action |
+|:--------|:----:|:----------:|:----------:|:-----------:|:---------------:|:-------|
+| 🔴 Frustrated Loyalists | 2,849 | **39.6%** | 13.4 mo | $59.39 | **$803,223** | Win-back + contract conversion |
+| 🔴 New & At-Risk Customers | 965 | **48.1%** | 27.5 mo | $78.91 | **$439,378** | Onboarding intervention + TechSupport |
+| 🟡 Moderate-Risk Segment | 2,120 | 11.7% | 54.4 mo | $86.62 | $256,738 | Loyalty rewards + bundle upsell |
+| 🟢 High-Value Loyal Customers | 1,109 | 2.8% | 43.2 mo | $24.46 | $9,099 | Standard management + upsell |
+
+**What makes Frustrated Loyalists notable:** These 2,849 customers averaged 13.4 months with the company — not first-week impulse cancellations. They stayed long enough to form an opinion, then left. 100% fall in Red or Yellow risk tiers.
 
 ---
 
 ## 🏥 Customer Health Score
 
-A weighted composite score (0–100) built from 5 behavioral signals:
+A weighted composite score (0–100) built from 5 behavioral signals derived from the SQL findings:
 
-| Factor | Weight | Rationale |
-|:-------|:------:|:----------|
-| Tenure | 25% | Longer tenures = proven stayers |
+| Signal | Weight | Why |
+|:-------|:------:|:----|
+| Tenure | 25% | Longer customers are proven stayers |
 | Contract type | 25% | Annual/2-year = committed; M2M = flight risk |
 | Service depth | 20% | More services = higher switching cost |
-| Payment method | 15% | Auto-pay = lower friction to cancel |
-| TechSupport | 15% | Support users are stickier |
+| Payment method | 15% | Auto-pay = lower cancellation friction |
+| TechSupport | 15% | Support users are measurably stickier |
 
-**Validation results:**
+![Customer Health Score Distribution and Validation](docs/health_score_distribution.png)
 
-| Risk Tier | Customers | Churn Rate | Avg Score |
-|:----------|:---------:|:----------:|:---------:|
-| 🔴 Red (High Risk) | 3,493 | 43% | 19.15 |
-| 🟡 Yellow (Medium Risk) | 2,124 | 14% | 53.45 |
-| 🟢 Green (Low Risk) | 1,426 | 6% | 84.79 |
+**Validation — the score separates risk tiers cleanly:**
 
-**7.2× churn rate separation** between Red and Green tiers confirms the score is predictive.
+| Risk Tier | Customers | % of Base | Churn Rate | Avg Score |
+|:----------|:---------:|:---------:|:----------:|:---------:|
+| 🔴 Red (High Risk) | 3,493 | 49.6% | **43%** | 19.15 |
+| 🟡 Yellow (Medium Risk) | 2,124 | 30.2% | 14% | 53.45 |
+| 🟢 Green (Low Risk) | 1,426 | 20.2% | **6%** | 84.79 |
+
+**7.2× churn rate separation** between Red and Green tiers — the score is predictive, not decorative.
 
 ---
 
 ## 💡 Recommendations & Projected ROI
 
-**Tiered Intervention Strategy:**
+**Tiered intervention based on Health Score:**
 
-- 🔴 **Red (3,493 customers):** Personal CS call + annual contract incentive  
-  → $174,650 investment → 524 customers saved → **$382,126/year protected** → **2.2× ROI**
+| Tier | Customers | Action | Investment | Projected Recovery |
+|:-----|:---------:|:-------|:----------:|:------------------:|
+| 🔴 Red | 3,493 | Personal CS call + annual contract incentive | $174,650 | $382,126/yr |
+| 🟡 Yellow | 2,124 | Automated nurture + service upgrade offer | — | Upsell revenue |
+| 🟢 Green | 1,426 | Standard management + referral incentives | — | Protect base |
 
-- 🟡 **Yellow (2,124 customers):** Automated nurture + service upgrade offer  
-  → Focus on bundle upsell: 6+ services customers churn at 16.6% vs. 31.2% for 3–5
+**Senior TechSupport trial** (830 seniors currently without support):
+- TechSupport reduces senior churn by 31 percentage points (50.6% → 19.6%)
+- Estimated 257 customers retained → **$246,452/year protected**
 
-- 🟢 **Green (1,426 customers):** Standard management + referral incentives
-
-**Senior TechSupport Trial** (830 seniors, no current support):  
-→ Est. 257 customers retained → **$246,452/year protected**
-
-**Combined:** ~$628,578 annual revenue recovery against $174,650 spend
+**Combined projected recovery: ~$628,578/year against $174,650 spend = 2.2× ROI in Year 1**
 
 ---
 
-## 📊 Dashboard Preview
+## 📊 Power BI Dashboard
 
-*(Power BI — 4-page interactive dashboard)*
+![Power BI Executive Overview](docs/dashboard_overview.png)
 
-| Page | What It Shows |
-|:-----|:-------------|
-| Executive Overview | KPI cards: churn rate, revenue at risk, total customers |
-| Customer Segments | Cluster profiles with interactive slicer |
-| Health Score Distribution | Risk tier breakdown, histogram, churn rate by tier |
-| Revenue Risk & ROI | Revenue risk matrix, intervention ROI calculations |
+4-page interactive dashboard built in Power BI Desktop:
+
+| Page | Purpose |
+|:-----|:--------|
+| **Executive Overview** | KPIs: total customers, churn rate, revenue at risk |
+| **Customer Segments** | Cluster profiles with interactive slicer |
+| **Health Score Distribution** | Risk tier breakdown, histogram, churn by tier |
+| **Revenue Risk & ROI** | Risk matrix, intervention cost-benefit analysis |
+
+File: `powerbi/Churn_Dashboard.pbix`
+
+---
+
+## 🏗️ Methodology
+
+```
+Raw Data (7,043 rows)
+       │
+       ▼
+[Step 1] Data Cleaning & Feature Engineering
+         Python / Pandas
+         → Fix TotalCharges type, create tenure_band,
+           services_count, has_security, churn_binary
+         → Output: data/cleaned/telco_churn_final.csv
+       │
+       ▼
+[Step 2] SQL Analysis — 15 Business Queries
+         SQLite
+         → Diagnose churn by contract, tenure, internet
+           service, payment method, bundle depth, senior
+           demographics, CLTV, and full risk matrix
+         → Output: sql/churn_analysis_queries.sql
+       │
+       ▼
+[Step 3] K-Means Clustering (k=4)
+         Scikit-learn / StandardScaler
+         → 5 features: tenure, MonthlyCharges,
+           services_count, contract_encoded, security_encoded
+         → Silhouette score: 0.30 (stable, std dev = 0.00)
+         → Output: models/churn_kmeans_k4.pkl
+       │
+       ▼
+[Step 4] Customer Health Score
+         Weighted composite (5 signals)
+         → Score range: 0.3 – 100.0, mean = 42.8
+         → Risk tiers: Red / Yellow / Green
+         → 7.2× separation between high/low risk
+       │
+       ▼
+[Step 5] Power BI Dashboard (4 pages)
+[Step 6] Executive Brief (1-page PDF)
+```
 
 ---
 
@@ -121,26 +192,39 @@ A weighted composite score (0–100) built from 5 behavioral signals:
 
 ```
 Project-1-Churn-Analysis/
-├── README.md                          ← This file
+├── README.md
+├── requirement.txt
+│
 ├── data/
-│   ├── raw/                           ← Original Kaggle CSV
+│   ├── raw/                              ← Original Kaggle CSV (gitignored)
 │   └── cleaned/
-│       ├── telco_churn_final.csv      ← Master dataset (21 cols, 7,043 rows)
-│       └── telco_churn.db             ← SQLite database
+│       ├── telco_churn_final.csv         ← Master dataset: 21 cols, 7,043 rows
+│       ├── telco_churn_cleaned.csv       ← Post-cleaning, pre-clustering
+│       └── telco_churn_clustered.csv     ← With cluster assignments
+│
 ├── notebooks/
-│   ├── Churn_Analysis_Cleaning.ipynb  ← Step 1: Data cleaning & feature engineering
-│   ├── P1_SQL_Analysis.ipynb          ← Step 2: 15 SQL queries
-│   └── Python_Clustering.ipynb        ← Steps 3–4: K-Means + Health Score
+│   ├── Churn_Analysis_Cleaning.ipynb     ← Step 1: Cleaning & feature engineering
+│   ├── P1_SQL_Analysis.ipynb             ← Step 2: 15 SQL queries with outputs
+│   └── Python_Clustering.ipynb          ← Steps 3–4: K-Means + Health Score
+│
 ├── sql/
-│   └── churn_analysis_queries.sql     ← All 15 queries with business comments
+│   └── churn_analysis_queries.sql        ← All 15 queries with business comments
+│
+├── models/
+│   ├── churn_kmeans_k4.pkl               ← Trained K-Means model
+│   ├── churn_scaler.pkl                  ← StandardScaler for inference
+│   └── clustering_features.json         ← Feature list for reproducibility
+│
 ├── docs/
-│   ├── Executive_Brief.pdf            ← 1-page VP-ready brief
-│   └── *.png                          ← Charts & dashboard screenshots
-├── powerbi/
-│   └── P1_Churn_Dashboard.pbix        ← 4-page interactive dashboard
-└── models/
-    ├── churn_kmeans_k4.pkl            ← Trained K-Means model (k=4)
-    └── churn_scaler.pkl               ← Feature scaler
+│   ├── Executive_Brief.pdf              ← 1-page VP-ready brief
+│   ├── dashboard_overview.png           ← Power BI screenshots (4 pages)
+│   ├── dashboard_clusters.png
+│   ├── dashboard_health.png
+│   ├── dashboard_risk.png
+│   └── *.png                            ← All analysis charts
+│
+└── powerbi/
+    └── Churn_Dashboard.pbix             ← 4-page interactive dashboard
 ```
 
 ---
@@ -149,12 +233,12 @@ Project-1-Churn-Analysis/
 
 ```bash
 # 1. Clone this repo
-git clone <repo-url>
-cd Project-1-Churn-Analysis
+git clone https://github.com/Abhisheksuwalka/subscription-churn-diagnosis.git
+cd subscription-churn-diagnosis
 
-# 2. Create and activate virtual environment
+# 2. Create and activate a virtual environment
 python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+source venv/bin/activate        # Windows: venv\Scripts\activate
 
 # 3. Install dependencies
 pip install -r requirement.txt
@@ -163,25 +247,22 @@ pip install -r requirement.txt
 jupyter notebook
 
 # 5. Run notebooks in order:
-#    notebooks/Churn_Analysis_Cleaning.ipynb  → generates cleaned CSVs
-#    notebooks/P1_SQL_Analysis.ipynb          → runs 15 SQL queries
-#    notebooks/Python_Clustering.ipynb        → runs K-Means + Health Score
+#    Churn_Analysis_Cleaning.ipynb  →  P1_SQL_Analysis.ipynb  →  Python_Clustering.ipynb
 ```
 
-The SQL queries in `sql/churn_analysis_queries.sql` can also be run directly against `data/cleaned/telco_churn.db` using any SQLite client (e.g., DB Browser for SQLite).
+> **SQL only?** The queries in `sql/churn_analysis_queries.sql` run directly against `data/cleaned/telco_churn.db` in any SQLite client (e.g., [DB Browser for SQLite](https://sqlitebrowser.org/)).
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Tool | Version | Purpose |
-|:-----|:--------|:--------|
-| Python | 3.9 | Core analysis language |
-| Pandas | Latest | Data manipulation & cleaning |
-| Scikit-learn | Latest | K-Means clustering, StandardScaler |
-| Matplotlib / Seaborn | Latest | Data visualization |
-| SQLite | Built-in | SQL analysis engine |
-| Power BI Desktop | Latest | Interactive dashboard |
+| Tool | Purpose |
+|:-----|:--------|
+| Python 3.9 + Pandas | Data cleaning & feature engineering |
+| SQLite | 15-query business analysis |
+| Scikit-learn | K-Means clustering, StandardScaler |
+| Matplotlib / Seaborn | All charts and visualizations |
+| Power BI Desktop | 4-page interactive dashboard |
 
 ---
 
@@ -193,6 +274,6 @@ The SQL queries in `sql/churn_analysis_queries.sql` can also be run directly aga
 
 ## 👤 Author
 
-**Abhishek Suwalka**  
-Business Analyst Portfolio Project — May 2026  
-Dataset: [IBM Telco Customer Churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn) (Kaggle)
+**Abhishek Suwalka** — Business Analyst Portfolio Project, May 2026
+
+Dataset: [IBM Telco Customer Churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn) (Kaggle, 7,043 rows)
