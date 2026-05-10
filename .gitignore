@@ -1,0 +1,23 @@
+# Python / Jupyter
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Data files — raw data stays local, not pushed to git
+data/raw/
+
+# Large binary files — too big for git
+data/cleaned/telco_churn.db
+
+# Guide/internal docs — not part of the public portfolio
+docs/guide/
+
+# Power BI source file — check in screenshots instead
+# powerbi/P1_Churn_Dashboard.pbix  ← uncomment to exclude if too large
